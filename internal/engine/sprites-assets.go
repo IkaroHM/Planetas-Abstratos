@@ -9,7 +9,7 @@ import (
 	"github.com/gopxl/pixel/v2"
 )
 
-func LoadAssets(path string) (pixel.Picture, error){
+func LoadAsset(path string) (pixel.Picture, error) {
 	file, err := os.Open(path)
 	if (err != nil){
 		return nil, err
@@ -23,12 +23,23 @@ func LoadAssets(path string) (pixel.Picture, error){
 }
 
 func CreateSprite(path string) (*pixel.Sprite) {
-	picture, err := LoadAssets(path)
+	picture, err := LoadAsset(path)
 	if (err != nil) {
 		log.Fatal(err)
 	}
 
-	sprite := pixel.NewSprite(picture, pixel.R(0, 0, 32, 32))
+	sprite := pixel.NewSprite(picture, picture.Bounds())
 
 	return sprite
+}
+
+func SliceSpriteSheet(picture pixel.Picture, frameW, frameH float64) ([]*pixel.Sprite) {
+	pictureW := picture.Bounds().Max.X
+	var frames []*pixel.Sprite
+
+	for f := 0.0; f < pictureW; f += frameW{
+		sprite := pixel.NewSprite(picture, pixel.R(f, 0, frameW + f, frameH))
+		frames = append(frames, sprite)
+	}
+	return frames
 }

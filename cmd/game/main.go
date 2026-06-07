@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gopxl/pixel/v2"
@@ -19,12 +20,12 @@ func run() {
 	defer window.Destroy()
 
 
-	astronauta := engine.CreateSprite("assets/sprites/walkingAstronauta-Sheet.png")
-	
+	astronauta, _ := engine.LoadAsset("assets/sprites/walkingAstronauta-Sheet.png")
+	var spriti pixel.Sprite
+	fmt.Println(astronauta, spriti, "Agora estao sendo usadas KKKKKKKKKK")
 	for !window.Closed() {
 		window.Clear(colornames.Cornflowerblue)
 
-		astronauta.Draw(window, pixel.IM.Scaled(pixel.ZV, 4).Moved(window.Bounds().Center()))
 		window.Update()
 	}
 }

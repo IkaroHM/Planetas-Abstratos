@@ -43,3 +43,9 @@ func SliceSpriteSheet(picture pixel.Picture, frameW, frameH float64) ([]*pixel.S
 	}
 	return frames
 }
+
+func GetSprite(path string, x float64, y float64, width float64, height float64) (*pixel.Sprite) {
+	picture, _ := LoadAsset(path)
+	sprite := pixel.NewSprite(picture, pixel.R(x, y, x + width, y + height))
+	return sprite
+}

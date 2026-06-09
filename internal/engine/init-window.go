@@ -11,6 +11,7 @@ func InitWindow() (*opengl.Window, error) {
 		Title: "Abstract Planets",
 		Bounds: pixel.R(0, 0, 1024, 768),
 		VSync: true,
+		Resizable: true,
 	}
 	window, err := opengl.NewWindow(cfg)
 

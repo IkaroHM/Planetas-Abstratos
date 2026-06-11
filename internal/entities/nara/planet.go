@@ -1,4 +1,4 @@
-package entities
+package nara
 
 type World struct {
 	Tiles [][]int

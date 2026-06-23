@@ -2,13 +2,18 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/gopxl/pixel/v2"
 	"github.com/gopxl/pixel/v2/backends/opengl"
 	"github.com/ikarohm/planetas-abstratos/internal/engine"
+	"github.com/ikarohm/planetas-abstratos/internal/entities/characters"
 	"github.com/ikarohm/planetas-abstratos/internal/entities/nara"
+	"github.com/ikarohm/planetas-abstratos/internal/physics"
 	"golang.org/x/image/colornames"
 )
+
+
 
 func initBlocks() (map[int]nara.Block) {
 
@@ -33,41 +38,6 @@ func initBlocks() (map[int]nara.Block) {
 	return blocks
 }
 
-func initWorld()(nara.World){
-	world := nara.World{
-		Tiles: [][]int{
-			{nara.Empty, nara.Empty, nara.Empty, nara.Empty, nara.Empty},
-			{nara.Empty, nara.Empty, nara.Empty, nara.Empty, nara.Empty},
-			{nara.Empty, nara.Empty, nara.Empty, nara.Empty, nara.Empty, },
-			{nara.Empty, nara.GrassLeft, nara.GrassMid, nara.GrassMid, nara.GrassMid, nara.GrassMid, nara.GrassRight, nara.Empty, nara.FloatGrass},
-			{nara.Empty, nara.DirtMid, nara.DirtMid, nara.DirtMid, nara.DirtMid, nara.DirtMid, nara.DirtMid},
-			{nara.Empty, nara.DirtLeft, nara.DirtMid, nara.DirtMid, nara.DirtMid, nara.DirtMid, nara.DirtRight},
-		},
-	}
-	return world
-}
-
-func drawNara(window pixel.Target, world nara.World, blocks map[int]nara.Block){
-	for y := range world.Tiles {
-		for x := range world.Tiles[y] {
-			tile := world.Tiles[y][x]
-			if (tile != nara.Empty){
-				block := blocks[tile]
-				sprite := block.Sprite
-				tileX := float64(x) * 96
-				tileY := float64(len(world.Tiles)-1-y) * 96
-				sprite.Draw(window, 
-					pixel.IM.Scaled(pixel.ZV, 3).Moved(
-								pixel.V(
-									tileX + 48,
-									tileY + 48,
-								),
-							))
-			}
-		}
-	}
-}
-
 func run() {
 	window, err := engine.InitWindow()
 
@@ -77,13 +47,33 @@ func run() {
 
 	defer window.Destroy()
 	
-	world := initWorld()
+	world := nara.InitWorld()
 	blocks := initBlocks()
+	player := &characters.Character{}
+	player.Body = physics.NewBody(pixel.V(192, 2000), pixel.R(-48, -48, 48, 48))
+	player.Sprite = engine.GetSprite("assets/sprites/walkingAstronauta-Sheet.png", 0, 0, 32, 32 )
+	lastFrame := time.Now()
+	dt := time.Since(lastFrame).Seconds()
+
+	drawPlayer := func(window pixel.Target, player *characters.Character, dt float64) {
+		if glWindow, ok := window.(*opengl.Window); ok{
+			player.Body.Update_and_move(dt, blocks, world, glWindow)
+		}else{
+			log.Fatal("A janela nao pode ser convertida pra *opengl.Window")
+		}
+
+		player.Sprite.Draw(window, pixel.IM.Scaled(pixel.ZV, 4).Moved(player.Body.Pos))
+	}
 
 	for !window.Closed() {
-		window.Clear(colornames.Cornflowerblue)
+		dt = time.Since(lastFrame).Seconds()
 
-		drawNara(window, world, blocks)
+		lastFrame = time.Now()
+
+		window.Clear(colornames.Darkslategray)
+		drawPlayer(window, player, dt)
+		nara.DrawNara(window, world, blocks)
+		
 
 		window.Update()
 	}

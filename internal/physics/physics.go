@@ -10,13 +10,21 @@ const (
 	Gravity = 9.8 * 100
 	StartVel = 300
 	JumpForce = 500
+	MaxFrameTime = 0.2
 )
 
 type Body struct{
+	//Fisica
 	Pos pixel.Vec
 	Vel pixel.Vec
 	Bounds pixel.Rect
 	OnGround bool
+
+	//Animacao
+	AnimationTime float64
+	CurrentFrame int
+	FacingLeft bool
+
 }
 
 func (b * Body) Update_and_move(dt float64, blocks map[int]nara.Block, worldMat nara.World, window *opengl.Window){
@@ -111,4 +119,36 @@ func (b *Body) CheckColision(blocks map[int]nara.Block, worldMat nara.World, new
 		}
 	}
 	return false
+}
+
+func (b *Body) Animate(dt float64, sprites map[string][]*pixel.Sprite) *pixel.Sprite{
+
+	frames := sprites["idle"]
+
+	if b.Vel.X < 0 {
+		frames = sprites["walking"]
+		b.FacingLeft = true
+	} else if b.Vel.X > 0 {
+		frames = sprites["walking"]
+		b.FacingLeft = false
+	}
+
+	if !b.OnGround {
+		if b.Vel.Y > 0 {
+			frames = sprites["jumping"]
+		}
+	}
+
+	if b.CurrentFrame >= len(frames){
+		b.CurrentFrame = 0
+		b.AnimationTime = 0
+	}
+
+	b.AnimationTime += dt
+	if (b.AnimationTime >= MaxFrameTime){
+		b.CurrentFrame ++
+		b.CurrentFrame = b.CurrentFrame % len(frames)
+		b.AnimationTime = 0
+	}
+	return frames[b.CurrentFrame]
 }

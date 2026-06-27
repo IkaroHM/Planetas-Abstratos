@@ -46,12 +46,23 @@ func run() {
 	}
 
 	defer window.Destroy()
-	
+
+	walkingAstronauta, _ := engine.LoadAsset("assets/sprites/walkingAstronauta-Sheet.png")
+	idleAstronauta, _ := engine.LoadAsset("assets/sprites/idleAstronauta-Sheet.png")
+
+	jumpingAstronauta, _ := engine.LoadAsset("assets/sprites/jumpingAstronauta-Sheet.png")
+
 	world := nara.InitWorld()
 	blocks := initBlocks()
+
 	player := &characters.Character{}
 	player.Body = physics.NewBody(pixel.V(192, 2000), pixel.R(-48, -48, 48, 48))
-	player.Sprite = engine.GetSprite("assets/sprites/walkingAstronauta-Sheet.png", 0, 0, 32, 32 )
+	animations := map[string][]*pixel.Sprite{
+		"idle": engine.SliceSpriteSheet(idleAstronauta, 32, 32),
+		"walking": engine.SliceSpriteSheet(walkingAstronauta, 32, 32),
+		"jumping": engine.SliceSpriteSheet(jumpingAstronauta, 32, 32),
+	}
+
 	lastFrame := time.Now()
 	dt := time.Since(lastFrame).Seconds()
 
@@ -62,7 +73,14 @@ func run() {
 			log.Fatal("A janela nao pode ser convertida pra *opengl.Window")
 		}
 
-		player.Sprite.Draw(window, pixel.IM.Scaled(pixel.ZV, 4).Moved(player.Body.Pos))
+		currentFrame := player.Body.Animate(dt, animations)
+		playerMat := pixel.IM.Scaled(pixel.ZV, 4).Moved(player.Body.Pos)
+		if player.Body.FacingLeft{
+			playerMat = playerMat.ScaledXY(player.Body.Pos, pixel.V(-1, 1))
+		}
+
+		currentFrame.Draw(window, playerMat)
+
 	}
 
 	for !window.Closed() {
@@ -71,7 +89,9 @@ func run() {
 		lastFrame = time.Now()
 
 		window.Clear(colornames.Darkslategray)
+
 		drawPlayer(window, player, dt)
+
 		nara.DrawNara(window, world, blocks)
 		
 
